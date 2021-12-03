@@ -4,13 +4,13 @@ CFLAGS = -std=c11 -pedantic -Wall -Werror -D_XOPEN_SOURCE=700
 
 .PHONY: all clean
 
-all: scan
+all: ssweep
 
 clean:
-	rm -f scan scan.o
+	rm -f ssweep ssweep.o
 
-scan: scan.o
-	$(CC) $(CFLAGS) scan.o -o scan
+ssweep: ssweep.o
+	$(CC) $(CFLAGS) ssweep.o -o ssweep
 
-scan.o: scan.c
-	$(CC) $(CFLAGS) $(DEBUG) scan.c -o scan.o -c
+ssweep.o: ssweep.c
+	$(CC) $(CFLAGS) $(DEBUG) ssweep.c -o ssweep.o -c
