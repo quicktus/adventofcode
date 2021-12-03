@@ -9,15 +9,16 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-		fprintf(stderr, "provide an input file\n");
-		exit(EXIT_FAILURE);
-	}
+	    if (fprintf(stderr, "%s\n", "provide an input file") < 0){
+            perror("fprintf");
+        }
+        exit(EXIT_FAILURE);
 
     FILE *fp;
     if ((fp = fopen(argv[1], "r")) == NULL){
         perror("fopen");
         exit(EXIT_FAILURE);
-        }
+    }
 
     int counter = 0;
     int curr = 0;
@@ -40,7 +41,11 @@ int main(int argc, char *argv[])
         if(curr > prev){counter++;}
         // keep curr as prev
         prev = curr;
-    }
+    }    
+    if (ferror(fp)){
+		perror("fgets");
+	}
+    
     if(printf("Count: %i\n", counter) < 0)
     {
 		perror("printf");

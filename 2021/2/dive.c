@@ -9,15 +9,17 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-		fprintf(stderr, "%s\n", "provide an input file");
-		exit(EXIT_FAILURE);
+		if (fprintf(stderr, "%s\n", "provide an input file") < 0){
+            perror("fprintf");
+        }
+        exit(EXIT_FAILURE);
 	}
 
     FILE *fp;
     if ((fp = fopen(argv[1], "r")) == NULL){
         perror("fopen");
         exit(EXIT_FAILURE);
-        }
+    }
 
     int horizontalpos = 0;
     int depth = 0;
@@ -40,8 +42,8 @@ int main(int argc, char *argv[])
         errno = 0;
         dist = strtol(distance, NULL, 10);
         if(dist > INT_MAX || dist < INT_MIN){
-            if (fprintf(stderr, "%s\n", "typecast failed, value out of range")< 0){
-                	perror("printf");
+            if (fprintf(stderr, "%s\n", "typecast failed, value out of range") < 0){
+                perror("printf");
             }
             exit(EXIT_FAILURE);
         }
@@ -64,6 +66,10 @@ int main(int argc, char *argv[])
 			perror("printf");
 		}
     }
+
+    if (ferror(fp)){
+		perror("fgets");
+	}
 
     // multiply 
     int res = horizontalpos * depth;
