@@ -39,9 +39,10 @@ int main(int argc, char *argv[])
         
         // distance string to int
         int dist;
+        long ldist;
         errno = 0;
-        dist = strtol(distance, NULL, 10);
-        if(dist > INT_MAX || dist < INT_MIN){
+        ldist = strtol(distance, NULL, 10);
+        if(ldist > INT_MAX || ldist < INT_MIN){
             if (fprintf(stderr, "%s\n", "typecast failed, value out of range") < 0){
                 perror("printf");
             }
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
             perror("strtol");
             exit(EXIT_FAILURE);
         }
+        dist = ldist;
         // adjust counters
         if(!strcmp(direction, "forward")){
 			horizontalpos += dist;
