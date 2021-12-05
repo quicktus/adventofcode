@@ -139,11 +139,17 @@ int main(int argc, char *argv[]){
                                 score = 0;
                                 for(int m = 0; m < 5; m++){
                                     for(int n = 0; n < 5; n++){
-                                        score += board[m][n];
+                                        short dup = 0;
+                                        for(int o = 0; o < currentRound; o++){
+                                            if(board[m][n] == drawnNums[o]){
+                                                dup = 1;
+                                                break;
+                                            }
+                                        }
+                                        if(!dup){
+                                            score += board[m][n];
+                                        }
                                     }
-                                }
-                                for(int o = 0; o < currentRound; o++){
-                                    score -= drawnNums[o];
                                 }
                                 score *= currentNum;
                             } else {
