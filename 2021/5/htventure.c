@@ -47,12 +47,7 @@ int main(int argc, char *argv[])
         perror("malloc");
     }
 
-    // I'm sure there's a better way to do this (like memset or calloc?)
-    for(int i = 0; i < SIZE; i++){
-        for(int j = 0; j < SIZE; j++){
-            map[i][j] = 0;
-        }
-    }
+    memset( map, 0, SIZE*SIZE*sizeof(int) );
 
     // read the vectors
     while(fgets(vectorString, 32, fp) != NULL){
@@ -111,20 +106,30 @@ int main(int argc, char *argv[])
                 for(int j = 0; j < SCALE; j++){
                     areaCounter += map[x+i][y+j];
                 }
-            }        
-            if(areaCounter <= (SCALE*SCALE*1/16) ){
-                printf("  ");
-            } else if(areaCounter <= (SCALE*SCALE*1/8) ){
-                printf(". ");
-            } else if(areaCounter <= (SCALE*SCALE*1/6) ){
-                printf("o ");
-            } else if(areaCounter <= (SCALE*SCALE*1/5) ){
-                printf("O ");
-            } else{
-                printf("0 ");
             }
+            char c = NULL;    
+            if(areaCounter <= (SCALE*SCALE*1/16) ){
+                c = ' ';
+            } else if(areaCounter <= (SCALE*SCALE*1/8) ){
+                c = '.';
+            } else if(areaCounter <= (SCALE*SCALE*1/6) ){
+                c = 'o';
+            } else if(areaCounter <= (SCALE*SCALE*1/5) ){
+                c = 'O';
+            } else{
+                c = '0';
+            }
+            if(printf("%c ", c) < 0)
+            {
+		        perror("printf");
+                exit(EXIT_FAILURE);
+	        }
         }
-        printf("\n");
+        if(printf("\n") < 0)
+        {
+            perror("printf");
+            exit(EXIT_FAILURE);
+        }
     }
 
 
