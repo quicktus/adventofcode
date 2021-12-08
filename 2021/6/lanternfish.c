@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     }
 
     const int DAYS_TO_SIM = 80;
-    int fish[7][2]; // fish count [day it creates on][adult or newborn]
+    int fish[7][2]; // fish count [weekday it creates on][newborn(0) or adult(1)]
     
     memset( fish, 0, 7*2*sizeof(int) );
 
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
             continue;
         }
         int fishDay = (int)c - '0'; // evil char to int conversion trick
-        fish[fishDay % 7][(fishDay < 7) ? 1 : 0]++; // increment the fish count [day it creates on][adult or newborn]  
+        fish[fishDay % 7][(fishDay < 7) ? 1 : 0]++; // increment the fish count [weekday it creates on][newborn(0) or adult(1)]  
     }
     if (ferror(fp) != 0){
         perror("fgetc");
