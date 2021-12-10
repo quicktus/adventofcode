@@ -41,6 +41,10 @@ int main(int argc, char *argv[])
     if (ferror(fp)){
 		perror("fgetc");
 	}
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 
     // for each digit
     for(int i = 0; i <= SIZE; i++){

@@ -69,6 +69,10 @@ int main(int argc, char *argv[]){
 		perror("fgets");
 		exit(EXIT_FAILURE);
 	}
+	if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 	
 	total = counter1 + counter4 + counter7 + counter8;
 

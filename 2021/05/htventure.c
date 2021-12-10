@@ -85,6 +85,10 @@ int main(int argc, char *argv[])
         perror("fgets");
         exit(EXIT_FAILURE);
     }
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 
     free(vectorString);
 

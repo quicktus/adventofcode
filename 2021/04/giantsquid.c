@@ -163,6 +163,10 @@ int main(int argc, char *argv[]){
             }
         }
     }
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 
     if(printf("The fastest winning board wins after %i rounds with a score of %i!\n", maxRounds, score) < 0)
     {

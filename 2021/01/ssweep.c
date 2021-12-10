@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
     if (ferror(fp)){
 		perror("fgets");
 	}
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
     
     if(printf("Count: %i\n", counter) < 0)
     {

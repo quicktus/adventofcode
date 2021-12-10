@@ -68,9 +68,12 @@ int main(int argc, char *argv[])
 			perror("printf");
 		}
     }
-
     if (ferror(fp)){
 		perror("fgets");
+	}
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
 	}
 
     // multiply 
