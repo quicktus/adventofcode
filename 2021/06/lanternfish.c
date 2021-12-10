@@ -46,6 +46,10 @@ int main(int argc, char *argv[])
         perror("fgetc");
         exit(EXIT_FAILURE);
     }
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 
     // simulate days
     int weekday = 0;

@@ -65,10 +65,14 @@ int main(int argc, char *argv[]){
             num = num * 10 + (c - '0');
         }
     }
-    if (ferror(fp) != 0){
+    if (ferror(fp)){
         perror("fgetc");
         exit(EXIT_FAILURE);
     }
+    if (fclose(fp)){
+		perror("fclose");
+		exit(EXIT_FAILURE);
+	}
 
     // find median
 	int median = 0;
