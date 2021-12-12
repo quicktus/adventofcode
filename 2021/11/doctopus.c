@@ -30,7 +30,7 @@ static void flash(int map[ROW_COUNT][COL_COUNT], int row, int col){
 		for(int j = -1; j < 2; j++){
 			if(i != 0 || j != 0){ //skip the middle
 				if(row+i != -1 && col+j != -1 && row+i != ROW_COUNT && col+j != COL_COUNT && 
-				map[row+i][col+j] > 9 && map[row+i][col+j] < 100){ //if it is >=100, its flash has ben simulated already
+				map[row+i][col+j] > 9 && map[row+i][col+j] < 100){ //if it is >=100, its flash has been simulated already
 					flash(map, row+i, col+j);
 				}
 			}
@@ -94,8 +94,14 @@ int main(int argc, char *argv[]){
 
 	if(ANIMATE){
 		// clear the console
-		printf("%*s", 10000, "");
-		printf("\x1b[H");
+		if(printf("%*s", 10000, "") < 0){
+			perror("printf");
+			exit(EXIT_FAILURE);
+		}
+		if(printf("\x1b[H") < 0){
+			perror("printf");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	// simulate
@@ -110,7 +116,7 @@ int main(int argc, char *argv[]){
 		// Then, any octopus with an energy level higher than 9 flashes.
 		for(int row = 0; row < ROW_COUNT; row++){
 			for(int col = 0; col < COL_COUNT; col++){
-				if(octomap[row][col] > 9 && octomap[row][col] < 100){ //if it is >=100, its flash has ben simulated already
+				if(octomap[row][col] > 9 && octomap[row][col] < 100){ //if it is >=100, its flash has been simulated already
 					flash(octomap, row, col);
 				}
 			}
@@ -169,7 +175,7 @@ int main(int argc, char *argv[]){
 		}
 	}
  
-    if(printf("The total Number of flashes after %i steps is %i.\n", SIM_DURATION, totalFlashes) < 0){
+    if(printf("The total number of flashes after %i steps is %i.\n", SIM_DURATION, totalFlashes) < 0){
 		perror("printf");
         exit(EXIT_FAILURE);
 	}
