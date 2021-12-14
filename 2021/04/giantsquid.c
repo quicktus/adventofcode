@@ -61,15 +61,16 @@ int main(int argc, char *argv[]){
         i++;
         tok = strtok(NULL, ",");
     }
+    free(drawnChars);
 
+    char *rowChars;
+    if((rowChars = malloc(20)) == NULL){
+        perror("malloc");
+    }
     int row = 0;
     int col = 0;
     while(1){
         // read row
-        char *rowChars;
-        if((rowChars = malloc(20)) == NULL){
-            perror("malloc");
-        }
         if(fgets(rowChars, 20, fp) == NULL){
             if(feof(fp)){
                 break;
@@ -167,6 +168,7 @@ int main(int argc, char *argv[]){
 		perror("fclose");
 		exit(EXIT_FAILURE);
 	}
+    free(rowChars);
 
     if(printf("The fastest winning board wins after %i rounds with a score of %i!\n", maxRounds, score) < 0)
     {
