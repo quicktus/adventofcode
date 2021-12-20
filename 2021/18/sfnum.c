@@ -4,7 +4,9 @@
 #include <stdlib.h>
 
 static struct num *newLeafNum(struct num *parent, const char *str, int *idx);
-static int reduceNum(struct num *numToReduce, int depth);
+static void reduceNum(struct num *numToReduce);
+static int explodeCheckNum(struct num *numToReduce, int depth);
+static int splitCheckNum(struct num *numToReduce, int depth);
 static void explodeNum(struct num *numToExplode, int idx);
 static struct num *splitNum(struct num *numToSplit, int idx);
 
@@ -92,19 +94,7 @@ struct num *addNum(struct num *addend1, struct num *addend2) {
   // set the root as the addents' parent
   addend1->parent = root;
   addend2->parent = root;
-  // perform reduction until its integrity is restored
-  int i = 1;
-  printf("\nafter addition: ");
-  printNum(root);
-  fflush(stdout);
-  while (i) {
-    i = reduceNum(root, -1);
-    if (i) {
-      printNum(root);
-      fflush(stdout);
-    }
-  }
-  printf("\n\n");
+  reduceNum(root);
   // return the resulting num
   return root;
 }
@@ -129,12 +119,12 @@ int magnitudeNum(struct num *numToMag) {
   int rightMag = 0;
 
   if (numToMag->leftVal == -1) {
-    leftMag = magnitudeNum(numToMag->left);
+    leftMag = magnitudeNum(numToMag->left) * 3;
   } else {
     leftMag = numToMag->leftVal * 3;
   }
   if (numToMag->rightVal == -1) {
-    rightMag = magnitudeNum(numToMag->right);
+    rightMag = magnitudeNum(numToMag->right) * 2;
   } else {
     rightMag = numToMag->rightVal * 2;
   }
@@ -157,63 +147,108 @@ void printNum(struct num *numToPrint) {
   printf("]");
 }
 
-static int reduceNum(struct num *numToReduce, int depth) {
+static void reduceNum(struct num *numToReduce) {
+  // perform reduction steps until its integrity is restored
+  int i = 1;
+  printf("\naddition: ");
+  printNum(numToReduce);
+  while (i) {
+    // first: check if explode can be applied
+    i = explodeCheckNum(numToReduce, -1);
+    if (i) {
+      printNum(numToReduce);
+    }
+    if (!i) {
+      // explode can not be applied, check if split can
+      i = splitCheckNum(numToReduce, -1);
+      if (i) {
+        printNum(numToReduce);
+      }
+    }
+  }
+  // integrity is confirmed
+  printf("\n\n");
+}
+
+static int explodeCheckNum(struct num *numToEC, int depth) {
   depth++;
   // traverse the tree
   // left
-  if (numToReduce->leftVal == -1) {
+  if (numToEC->leftVal == -1) {
     // there is a nested num
-    if (reduceNum(numToReduce->left, depth)) {
+    if (explodeCheckNum(numToEC->left, depth)) {
       return 1;
     }
   } else {
     // this is a regular number
     // check for explode criterion
-    if (depth >= 4) {
-      explodeNum(numToReduce, 0);
-      printf("\nafter explode:  ");
-      fflush(stdout);
-      return 1;
-    }
-    // check for split criterion
-    if (numToReduce->leftVal >= 10) {
-      numToReduce->left = splitNum(numToReduce, 0);
-      numToReduce->leftVal = -1;
-      printf("\nafter split:    ");
-      fflush(stdout);
+    if (depth >= 4 && numToEC->parent->left == numToEC) {
+      explodeNum(numToEC, 0);
+      printf("\nexplode:  ");
       return 1;
     }
   }
   // right
-  if (numToReduce->rightVal == -1) {
+  if (numToEC->rightVal == -1) {
     // there is a nested num
-    if (reduceNum(numToReduce->right, depth)) {
+    if (explodeCheckNum(numToEC->right, depth)) {
       return 1;
     }
   } else {
     // this is a regular number
     // check for explode criterion
-    if (depth >= 4) {
-      explodeNum(numToReduce, 1);
-      printf("\nafter explode:  ");
-      fflush(stdout);
-      return 1;
-    }
-    // check for split criterion
-    if (numToReduce->rightVal >= 10) {
-      numToReduce->right = splitNum(numToReduce, 1);
-      numToReduce->rightVal = -1;
-      printf("\nafter split:    ");
-      fflush(stdout);
+    if (depth >= 4 && numToEC->parent->right == numToEC) {
+      explodeNum(numToEC, 1);
+      printf("\nexplode:  ");
       return 1;
     }
   }
-  // no action needed to be performed - integrity is confirmed
+  // no  explode action needed to be performed
+  return 0;
+}
+
+static int splitCheckNum(struct num *numToSC, int depth) {
+  depth++;
+  // traverse the tree
+  // left
+  if (numToSC->leftVal == -1) {
+    // there is a nested num
+    if (splitCheckNum(numToSC->left, depth)) {
+      return 1;
+    }
+  } else {
+    // this is a regular number
+    // check for split criterion
+    if (numToSC->leftVal >= 10) {
+      numToSC->left = splitNum(numToSC, 0);
+      numToSC->leftVal = -1;
+      printf("\nsplit:    ");
+      return 1;
+    }
+  }
+  // right
+  if (numToSC->rightVal == -1) {
+    // there is a nested num
+    if (splitCheckNum(numToSC->right, depth)) {
+      return 1;
+    }
+  } else {
+    // this is a regular number
+    // check for split criterion
+    if (numToSC->rightVal >= 10) {
+      numToSC->right = splitNum(numToSC, 1);
+      numToSC->rightVal = -1;
+      printf("\nsplit:    ");
+      return 1;
+    }
+  }
+  // no split action needed to be performed
   return 0;
 }
 
 static void explodeNum(struct num *numToExplode, int idx) {
   // Exploding pairs always consist of two regular numbers
+  // printf("\nidx: %i", idx);
   struct num *currentNum;
   struct num *previousNum;
   // the pair's left value is added to the first regular number to the left of
@@ -229,7 +264,7 @@ static void explodeNum(struct num *numToExplode, int idx) {
       currentNum = currentNum->parent;
     } else if (currentNum->leftVal != -1) {
       // found it - increase its value accordingly
-      printf("\n\n\nleft: %i", currentNum->rightVal);
+      // printf(" | left: %i", currentNum->leftVal);
       currentNum->leftVal += numToExplode->leftVal;
       break;
     } else {
@@ -241,7 +276,7 @@ static void explodeNum(struct num *numToExplode, int idx) {
         currentNum = currentNum->right;
       }
       // found it - increase its value accordingly
-      printf("\n\n\nleft: %i", currentNum->rightVal);
+      // printf("left: %i", currentNum->rightVal);
       currentNum->rightVal += numToExplode->leftVal;
       break;
     }
@@ -259,7 +294,7 @@ static void explodeNum(struct num *numToExplode, int idx) {
       currentNum = currentNum->parent;
     } else if (currentNum->rightVal != -1) {
       // found it - increase its value accordingly
-      printf(" right: %i", currentNum->leftVal);
+      // printf("| right: %i", currentNum->rightVal);
       currentNum->rightVal += numToExplode->rightVal;
       break;
     } else {
@@ -270,11 +305,11 @@ static void explodeNum(struct num *numToExplode, int idx) {
       while (currentNum->leftVal == -1) {
         currentNum = currentNum->left;
       }
+      // found it - increase its value accordingly
+      // printf("| right: %i", currentNum->leftVal);
+      currentNum->leftVal += numToExplode->rightVal;
+      break;
     }
-    // found it - increase its value accordingly
-    printf(" right: %i", currentNum->leftVal);
-    currentNum->leftVal += numToExplode->rightVal;
-    break;
   }
 
   // the entire exploding pair is replaced with the regular number 0.
