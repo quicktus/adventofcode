@@ -1,5 +1,6 @@
 //  https://adventofcode.com/2021/day/19
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,12 +20,13 @@ int main(int argc, char *argv[]) {
   }
 
   const int LINE_LEN_MAX = 32;
-  const int DISTINCT_BEACONS_MAX = 700;
-  const int BEACONS_PER_SCANNER_MAX = 30;
+  const int DISTINCT_BEACONS_MAX = 800;
+  const int BEACONS_PER_SCANNER_MAX = 28;
 
-  int beaconCoords[DISTINCT_BEACONS_MAX][3];
-  int tempBeaconCoords[BEACONS_PER_SCANNER_MAX][3];
-  int beaconCount = 0;
+  // beacon coordinates (xyz) and fingerprint, which consists of:
+  // squared distance, min squared offset, max squared offset
+  int beacon[DISTINCT_BEACONS_MAX][6];
+  int tempBeacon[BEACONS_PER_SCANNER_MAX][6];
   int idx = 0;
   char *coordChars;
 
@@ -39,17 +41,33 @@ int main(int argc, char *argv[]) {
       break;
     }
     // skip scanner name divider
-    if (strncmp(coordChars, "---", 3) == 0) {
+    if (coordChars[1] == '-') {
       continue;
     }
-    // read the three values
+    // calculate the fingerprint
+    beacon[idx][3] = 0;       // squared distance
+    beacon[idx][4] = INT_MAX; // min squared offset
+    beacon[idx][5] = 0;       // max squared offset
+    // read the three axes
     char *tok = strtok(coordChars, ",");
     for (int axis = 0; axis < 3; axis++) {
-      beaconCoords[idx][axis] = strtol(tok, NULL, 10);
-      printf("%i ", beaconCoords[idx][axis]);
+      // convert to int
+      int c = strtol(tok, NULL, 10);
+      beacon[idx][axis] = c;
+      // square
+      c = c * c;
+      // add to the squared distance
+      beacon[idx][3] += c;
+      // set min squared offset
+      if (c < beacon[idx][4]) {
+        beacon[idx][4] = c;
+      }
+      // set max squared offset
+      if (c > beacon[idx][4]) {
+        beacon[idx][4] = c;
+      }
       tok = strtok(NULL, ",");
     }
-    printf("\n");
     idx++;
   }
 
@@ -62,83 +80,103 @@ int main(int argc, char *argv[]) {
       if (coordChars[0] == '\r') {
         break;
       }
-      // skip scanner name divider
-      if (strncmp(coordChars, "---", 3) == 0) {
+      // skip the scanner name divider
+      if (coordChars[1] == '-') {
         continue;
       }
+      // calculate the fingerprint
+      tempBeacon[tempidx][3] = 0;       // squared distance
+      tempBeacon[tempidx][4] = INT_MAX; // min squared offset
+      tempBeacon[tempidx][5] = 0;       // max squared offset
+      // read the three axes
       char *tok = strtok(coordChars, ",");
       for (int axis = 0; axis < 3; axis++) {
-        tempBeaconCoords[idx][axis] = strtol(tok, NULL, 10);
-        printf("%i ", tempBeaconCoords[idx][axis]);
+        // convert to int
+        int c = strtol(tok, NULL, 10);
+        tempBeacon[tempidx][axis] = c;
+        // square
+        c = c * c;
+        // add to the squared distance
+        tempBeacon[tempidx][3] += c;
+        // set min squared offset
+        if (c < tempBeacon[tempidx][4]) {
+          tempBeacon[tempidx][4] = c;
+        }
+        // set max squared offset
+        if (c > tempBeacon[tempidx][4]) {
+          tempBeacon[tempidx][4] = c;
+        }
         tok = strtok(NULL, ",");
       }
-      printf("\n");
       tempidx++;
       // prevent going out of bounds
-      if (tempidx == BEACONS_PER_SCANNER_MAX + 1) {
+      if (tempidx >= BEACONS_PER_SCANNER_MAX) {
         if (fprintf(stderr, "%s\n", "BEACONS_PER_SCANNER_MAX too low.") < 0) {
           perror("fprintf");
         }
         exit(EXIT_FAILURE);
       }
     }
-    // find its position relative to scanner 0
-    int delta[3];
-    for (int i; i < idx; i++) {
-      for (int j; j < tempidx; j++) {
-        // calculate the offsets
-        for (int axis = 0; axis < 3; axis++) {
-          delta[axis] = beaconCoords[j][axis] - tempBeaconCoords[i][axis];
+
+    
+    /* // find its sd relative to scanner 0
+    int delta;
+    int matches;
+    int bestDelta;
+    int bestMatches = 12;
+
+    for (int i = 0; i < idx; i++) {
+      for (int j = 0; j < tempidx; j++) {
+        // calculate the offset
+        delta = beacon[i] - tempBeacon[j];
+        // see if the offset tempBeacons matches 12 or more of the beacons
+        matches = 0;
+        for (int k = 0; k < tempidx; k++) {
+          if ((tempidx - 1 - k) >= (bestMatches - matches)) {
+            // even if all other beacons matched, the total won't be higher
+            break;
+          }
+          for (int l = 0; l < idx; l++) {
+            if (beacon[l] == (tempBeacon[k] + delta)) {
+              matches++;
+            }
+          }
         }
-        // see if the points in tempBeaconCoords match 12 or more of the
-        // beaconCoords
-        int matches = 0;
-        for (int k; k < tempidx; k++) {
-          
+        if (matches > bestMatches) {
+          bestMatches = matches;
+          bestDelta = delta;
         }
       }
     }
 
     // append the newly discovered beacons
-    for (int j; j < tempidx; j++) {
+    for (int j = 0; j < tempidx; j++) {
       // apply the offset
-      for (int axis = 0; axis < 3; axis++) {
-        tempBeaconCoords[i][axis] += delta[axis];
-      }
-      // for each beacon in beaconCoords
+      tempBeacon[j] += bestDelta;
       int match = 0;
       for (int i; i < idx; i++) {
+        // for each beacon in beacon
         // see if it matches the current beacon
-        int m = 0;
-        for (int axis = 0; axis < 3; axis++) {
-          if (beaconCoords[i][axis] == tempBeaconCoords[i][axis]) {
-            m++;
-          }
-        }
-        if (m == 3) {
-          // match found
+        if (beacon[i] == tempBeacon[j]) {
           match = 1;
         }
       }
       if (!match) {
-        // beacon is not in a known beacon - add it
-        for (int axis = 0; axis < 3; axis++) {
-          beaconCoords[idx][axis] == tempBeaconCoords[i][axis]
-        }
+        // beacon is not a known beacon - add it
+        beacon[idx] = tempBeacon[j];
         idx++;
         // prevent going out of bounds
-        if (idx == DISTINCT_BEACONS_MAX + 1) {
+        if (idx == DISTINCT_BEACONS_MAX) {
           if (fprintf(stderr, "%s\n", "DISTINCT_BEACONS_MAX too low.") < 0) {
             perror("fprintf");
           }
           exit(EXIT_FAILURE);
         }
       }
-    }
+    } */
 
     // check if there are no more scanners left to read
     if (feof(fp)) {
-      printf("idx: %i  tempidx: %i", idx, tempidx);
       break;
     }
   }
@@ -152,7 +190,7 @@ int main(int argc, char *argv[]) {
   }
   free(coordChars);
 
-  if (printf("total amount of beacons: %i\n", beaconCount) < 0) {
+  if (printf("total amount of beacons: %i\n", idx) < 0) {
     perror("printf");
     exit(EXIT_FAILURE);
   }
