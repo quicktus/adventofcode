@@ -3,7 +3,62 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#define LINE_LEN_MAX 32
+#define DISTINCT_BEACONS_MAX 800
+#define BEACONS_PER_SCANNER_MAX 28
+
+static const short rots[6][4][3] = {
+    // north
+    {
+        {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+        {{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}},
+        {{-1, 0, 0}, {0, 1, 0}, {0, 0, -1}},
+        {{0, 0, -1}, {0, 1, 0}, {1, 0, 0}},
+    },
+    // east
+    {
+        {{0, 1, 0}, {-1, 0, 0}, {0, 0, 1}},
+        {{0, 1, 0}, {0, 0, -1}, {-1, 0, 0}},
+        {{0, 1, 0}, {1, 0, 0}, {0, 0, -1}},
+        {{0, 1, 0}, {0, 0, 1}, {1, 0, 0}},
+    },
+    // south
+    {
+        {{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}},
+        {{0, 0, -1}, {0, -1, 0}, {-1, 0, 0}},
+        {{1, 0, 0}, {0, -1, 0}, {0, 0, -1}},
+        {{0, 0, 1}, {0, -1, 0}, {1, 0, 0}},
+    },
+    // west
+    {
+        {{0, -1, 0}, {1, 0, 0}, {0, 0, 1}},
+        {{0, -1, 0}, {0, 0, 1}, {-1, 0, 0}},
+        {{0, -1, 0}, {-1, 0, 0}, {0, 0, -1}},
+        {{0, -1, 0}, {0, 0, -1}, {1, 0, 0}},
+    },
+    // up
+    {
+        {{1, 0, 0}, {0, 0, -1}, {0, 1, 0}},
+        {{0, 0, -1}, {-1, 0, 0}, {0, 1, 0}},
+        {{-1, 0, 0}, {0, 0, 1}, {0, 1, 0}},
+        {{0, 0, 1}, {1, 0, 0}, {0, 1, 0}},
+    },
+    // down
+    {{{1, 0, 0}, {0, 0, 1}, {0, -1, 0}},
+     {{0, 0, 1}, {-1, 0, 0}, {0, -1, 0}},
+     {{-1, 0, 0}, {0, 0, -1}, {0, -1, 0}},
+     {{0, 0, 1}, {1, 0, 0}, {0, -1, 0}}}};
+
+typedef struct beacon beacon;
+
+struct beacon {
+  int coords[3]; // beacon coordinates
+  int in1;       // index of closest neighbor
+  int in2;       // index of second-cosest neighbor
+  int dn1;       // squared distance to closest neighbor
+  int dn2;       // squared distance to second-cosest neighbor
+};
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -19,22 +74,16 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  const int LINE_LEN_MAX = 32;
-  const int DISTINCT_BEACONS_MAX = 800;
-  const int BEACONS_PER_SCANNER_MAX = 28;
+  beacon bs[DISTINCT_BEACONS_MAX];
+  beacon tempbs[BEACONS_PER_SCANNER_MAX];
 
-  // beacon coordinates (xyz) and fingerprint, which consists of:
-  // squared distance, min squared offset, max squared offset
-  int beacon[DISTINCT_BEACONS_MAX][6];
-  int tempBeacon[BEACONS_PER_SCANNER_MAX][6];
-  int idx = 0;
   char *coordChars;
-
   if ((coordChars = malloc(LINE_LEN_MAX)) == NULL) {
     perror("malloc");
   }
 
   // read in scanner 0
+  int idx = 0;
   while (fgets(coordChars, LINE_LEN_MAX, fp) != NULL) {
     // stop at blank line
     if (coordChars[0] == '\r') {
@@ -44,31 +93,36 @@ int main(int argc, char *argv[]) {
     if (coordChars[1] == '-') {
       continue;
     }
-    // calculate the fingerprint
-    beacon[idx][3] = 0;       // squared distance
-    beacon[idx][4] = INT_MAX; // min squared offset
-    beacon[idx][5] = 0;       // max squared offset
     // read the three axes
     char *tok = strtok(coordChars, ",");
     for (int axis = 0; axis < 3; axis++) {
       // convert to int
       int c = strtol(tok, NULL, 10);
-      beacon[idx][axis] = c;
-      // square
-      c = c * c;
-      // add to the squared distance
-      beacon[idx][3] += c;
-      // set min squared offset
-      if (c < beacon[idx][4]) {
-        beacon[idx][4] = c;
-      }
-      // set max squared offset
-      if (c > beacon[idx][4]) {
-        beacon[idx][4] = c;
-      }
+      bs[idx]->coords[axis] = c;
       tok = strtok(NULL, ",");
     }
     idx++;
+  }
+
+  // find and set the distances for the two closest neighbours
+  for (int i = 0; i < idx; i++) {
+    bs[i]->dn1 = INT_MAX;
+    bs[i]->dn2 = INT_MAX;
+    for (int j = 0; j < idx; j++) {
+      int xdist = bs[i]->coords[0] - bs[j]->coords[0];
+      int ydist = bs[i]->coords[1] - bs[j]->coords[1];
+      int zdist = bs[i]->coords[2] - bs[j]->coords[2];
+      int dist = (xdist * xdist) + (ydist * ydist) + (zdist * zdist);
+      if (dist != 0 && dist < bs[i]->dn1) {
+        bs[i]->dn2 = bs[i]->dn1;
+        bs[i]->in2 = bs[i]->in1;
+        bs[i]->dn1 = dist;
+        bs[i]->in1 = j;
+      } else if (dist != 0 && dist < bs[i]->dn2) {
+        bs[i]->dn2 = dist;
+        bs[i]->in2 = j;
+      }
+    }
   }
 
   // add the rest of the scanners
@@ -84,28 +138,13 @@ int main(int argc, char *argv[]) {
       if (coordChars[1] == '-') {
         continue;
       }
-      // calculate the fingerprint
-      tempBeacon[tempidx][3] = 0;       // squared distance
-      tempBeacon[tempidx][4] = INT_MAX; // min squared offset
-      tempBeacon[tempidx][5] = 0;       // max squared offset
       // read the three axes
       char *tok = strtok(coordChars, ",");
       for (int axis = 0; axis < 3; axis++) {
         // convert to int
         int c = strtol(tok, NULL, 10);
-        tempBeacon[tempidx][axis] = c;
-        // square
-        c = c * c;
-        // add to the squared distance
-        tempBeacon[tempidx][3] += c;
-        // set min squared offset
-        if (c < tempBeacon[tempidx][4]) {
-          tempBeacon[tempidx][4] = c;
-        }
-        // set max squared offset
-        if (c > tempBeacon[tempidx][4]) {
-          tempBeacon[tempidx][4] = c;
-        }
+        tempbs[tempidx]->coords[axis] = c;
+
         tok = strtok(NULL, ",");
       }
       tempidx++;
@@ -118,8 +157,69 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    
-    /* // find its sd relative to scanner 0
+    // find and set the distances for the two closest neighbours
+    for (int i = 0; i < tempidx; i++) {
+      tempbs[i]->dn1 = INT_MAX;
+      tempbs[i]->dn2 = INT_MAX;
+      for (int j = 0; j < tempidx; j++) {
+        int xdist = tempbs[i]->coords[0] - tempbs[j]->coords[0];
+        int ydist = tempbs[i]->coords[1] - tempbs[j]->coords[1];
+        int zdist = tempbs[i]->coords[2] - tempbs[j]->coords[2];
+        int dist = (xdist * xdist) + (ydist * ydist) + (zdist * zdist);
+        if (dist != 0 && dist < tempbs[i]->dn1) {
+          tempbs[i]->dn2 = tempbs[i]->dn1;
+          tempbs[i]->in2 = tempbs[i]->in1;
+          tempbs[i]->dn1 = dist;
+          tempbs[i]->in1 = j;
+        } else if (dist != 0 && dist < tempbs[i]->dn2) {
+          tempbs[i]->dn2 = dist;
+          tempbs[i]->in2 = j;
+        }
+      }
+    }
+
+    // find a beacon with matching neighbour distances from scanner 0
+    int matchbs;
+    int matchtempbs;
+    for (int i = 0; i < idx; i++) {
+      for (int j = 0; j < tempidx; j++) {
+        if (bs[i]->dn1 == tempbs[j]->dn1 && bs[i]->dn2 == tempbs[j]->dn2) {
+          // found one
+          matchbs = i;
+          matchtempbs = j;
+          // end loop
+          i = MAX_INT;
+          j = MAX_INT;
+        }
+      }
+    }
+
+    // find the rotation and coordinate offset
+
+    ///////////////////////////////////////////////////////
+
+    for (int i = 0; i <= 24; i++) {
+      int pos0[] = bs[matchbs]->coords;
+      int pos1[] = tempbs[matchtempbs]->coords;
+      int rot[] = rots[i];
+      int vec[3];
+
+      // rotate
+      vec[0] = pos0[0] * rot[0][0] + vec[1] * rot[0][1] + vec[2] * rot[0][2];
+      vec[1] = pos0[0] * rot[1][0] + vec[1] * rot[1][1] + vec[2] * rot[1][2];
+      vec[2] = pos0[0] * rot[2][0] + vec[1] * rot[2][1] + vec[2] * rot[2][2];
+      pos0 = vec;
+
+      // move
+      pos0[0] = pos1[0] - pos0[0];
+      pos0[1] = pos1[1] - pos0[1];
+      pos0[2] = pos1[2] - pos0[2];
+
+      // test alignment
+    }
+
+    ///////////////////////////////////////////////////////
+
     int delta;
     int matches;
     int bestDelta;
@@ -173,10 +273,11 @@ int main(int argc, char *argv[]) {
           exit(EXIT_FAILURE);
         }
       }
-    } */
+    }
+    * /
 
-    // check if there are no more scanners left to read
-    if (feof(fp)) {
+        // check if there are no more scanners left to read
+        if (feof(fp)) {
       break;
     }
   }
