@@ -60,10 +60,10 @@ typedef struct beacon beacon;
 
 struct beacon {
   int coords[3]; // beacon coordinates
-  int in1;       // index of closest neighbor
-  int in2;       // index of second-cosest neighbor
-  int dn1;       // squared distance to closest neighbor
-  int dn2;       // squared distance to second-cosest neighbor
+  int in1;       // index of closest neighbour
+  int in2;       // index of second-cosest neighbour
+  int dn1;       // squared distance to closest neighbour
+  int dn2;       // squared distance to second-cosest neighbour
 };
 
 int main(int argc, char *argv[]) {
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
 
   // add the rest of the scanners
   while (1) {
+    int scannerc = 0;
     // read the next scanner
     int tempidx = 0;
     while (fgets(coordChars, LINE_LEN_MAX, fp) != NULL) {
@@ -186,10 +187,12 @@ int main(int argc, char *argv[]) {
     }
 
     // find a beacon with matching neighbour distances from scanner 0
-    int matchbs;
-    int matchtempbs;
+    int matchbs = -1;
+    int matchtempbs = -1;
     for (int i = 0; i < idx; i++) {
       for (int j = 0; j < tempidx; j++) {
+        printf("%6i %6i | %6i %6i\n", bs[i].dn1, tempbs[j].dn1, bs[i].dn2,
+               tempbs[j].dn2);
         if (bs[i].dn1 == tempbs[j].dn1 && bs[i].dn2 == tempbs[j].dn2) {
           // found one
           matchbs = i;
@@ -199,6 +202,15 @@ int main(int argc, char *argv[]) {
           j = INT_MAX;
         }
       }
+    }
+
+    if (matchbs == -1) {
+      if (fprintf(stderr, "%s\n",
+                  "no beacon with matching neighbour distances was found") <
+          0) {
+        perror("fprintf");
+      }
+      exit(EXIT_FAILURE);
     }
 
     // find the rotation and coordinate offset
@@ -318,6 +330,11 @@ int main(int argc, char *argv[]) {
         }
       }
     }
+
+    scannerc++;
+    if (printf("%2i scanners aligned.\r", scannerc) < 0) {
+      perror("fprintf");
+    }
     // check if there are no more scanners left to read
     if (feof(fp)) {
       break;
@@ -333,7 +350,7 @@ int main(int argc, char *argv[]) {
   }
   free(coordChars);
 
-  if (printf("total amount of beacons: %i\n", idx) < 0) {
+  if (printf("\ntotal amount of beacons: %i\n", idx) < 0) {
     perror("printf");
     exit(EXIT_FAILURE);
   }
