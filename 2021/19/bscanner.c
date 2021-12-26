@@ -43,17 +43,20 @@ static const short rots[24][3][3] = {
     {{0, 0, 1}, {1, 0, 0}, {0, -1, 0}}};
 
 static void rotate(int *x, int *y, int *z, int rotidx) {
-  int r[3][3];
-  memcpy(r, rots[rotidx], (3 * 3 * sizeof(int)));
   // apply rotation by switching values between the axes into a temporary vector
+  // printf("%5i | %5i | %5i\n", *x, *y, *z);
   int v[3];
-  v[0] = *x * r[0][0] + *y * r[0][1] + *z * r[0][2];
-  v[1] = *x * r[1][0] + *y * r[1][1] + *z * r[1][2];
-  v[2] = *x * r[2][0] + *y * r[2][1] + *z * r[2][2];
+  v[0] = *x * rots[rotidx][0][0] + *y * rots[rotidx][0][1] +
+         *z * rots[rotidx][0][2];
+  v[1] = *x * rots[rotidx][1][0] + *y * rots[rotidx][1][1] +
+         *z * rots[rotidx][1][2];
+  v[2] = *x * rots[rotidx][2][0] + *y * rots[rotidx][2][1] +
+         *z * rots[rotidx][2][2];
   // write the rotated values
   *x = v[0];
   *y = v[1];
   *z = v[2];
+  // printf("%5i | %5i | %5i\n\n", *x, *y, *z);
 }
 
 int main(int argc, char *argv[]) {
@@ -135,9 +138,10 @@ int main(int argc, char *argv[]) {
 
     int isAligned = 0;
     // for each beacon in tempbs
-    for (int j = 0; j < tempidx; j++) {
+    for (int j = 0; j < tempidx && !isAligned; j++) {
       // for each possible rotation
-      for (int rotidx = 0; rotidx <= 24; rotidx++) {
+      for (int rotidx = 0; rotidx < 24 && !isAligned; rotidx++) {
+        printf("rot: %i\n", rotidx);
         // do rotation
         int pos[3];
         for (int axis = 0; axis < 3; axis++) {
@@ -145,7 +149,7 @@ int main(int argc, char *argv[]) {
         }
         rotate(&pos[0], &pos[1], &pos[2], rotidx);
         // for each beacon in bs
-        for (int i = 0; i < idx; i++) {
+        for (int i = 0; i < idx && !isAligned; i++) {
           // calculate coordinate offset
           int os[3];
           for (int axis = 0; axis < 3; axis++) {
@@ -173,11 +177,14 @@ int main(int argc, char *argv[]) {
             }
             for (int m = 0; m < idx; m++) {
               // see if the transformed beacon has a match
+              printf("%5i %5i | %5i %5i | %5i %5i", bs[m][0], pos[0], bs[m][1],
+                     pos[1], bs[m][2], pos[2]);
               if (bs[m][0] == pos[0] && //
                   bs[m][1] == pos[1] && //
                   bs[m][2] == pos[2]) {
                 // the beacon matches
                 alignmentc++;
+                printf("   a = %i\n", alignmentc);
                 // skip the rest of the evaluations
                 break;
               } else if (m == idx - 1) {
@@ -187,6 +194,7 @@ int main(int argc, char *argv[]) {
                 }
                 newidx++;
               }
+              printf("\n");
             }
           }
           if (alignmentc >= ALIGNMENT_CERTAINTY_THRESHOLD) {
@@ -207,8 +215,6 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
               }
             }
-            // no need to check other rotations - stop evaluation
-            break;
           }
         }
       }
@@ -219,7 +225,7 @@ int main(int argc, char *argv[]) {
           0) {
         perror("fprintf");
       }
-      exit(EXIT_FAILURE);
+      //exit(EXIT_FAILURE);
     }
 
     if (printf("%2i scanners aligned.\r", scannerc + 1) < 0) {
