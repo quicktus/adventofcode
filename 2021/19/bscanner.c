@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
   }
 
   // add the rest of the scanners
+  printf("\n");
   for (int scannerc = 0; !feof(fp); scannerc++) {
     // read the next scanner
     int tempidx = 0;
@@ -141,19 +142,31 @@ int main(int argc, char *argv[]) {
     for (int j = 0; j < tempidx && !isAligned; j++) {
       // for each possible rotation
       for (int rotidx = 0; rotidx < 24 && !isAligned; rotidx++) {
-        printf("rot: %i\n", rotidx);
+        // printf("rot: %i\n", rotidx);
         // do rotation
         int pos[3];
         for (int axis = 0; axis < 3; axis++) {
           pos[axis] = tempbs[j][axis];
         }
         rotate(&pos[0], &pos[1], &pos[2], rotidx);
+
+        for (int axis = 0; axis < 3; axis++) {
+          if (pos[axis] > 1000) {
+            printf("pos: %i   rotidx: %i   tempbs: %i, %i, %i\n", pos[axis],
+                   rotidx, tempbs[j][0], tempbs[j][1], tempbs[j][2]);
+          }
+        }
+
         // for each beacon in bs
         for (int i = 0; i < idx && !isAligned; i++) {
           // calculate coordinate offset
           int os[3];
           for (int axis = 0; axis < 3; axis++) {
             os[axis] = bs[i][axis] - pos[axis];
+            if (pos[axis] > 1000) {
+              printf("pos: %i   rotidx: %i   tempbs: %i, %i, %i\n", pos[axis],
+                     rotidx, tempbs[j][0], tempbs[j][1], tempbs[j][2]);
+            }
           }
           // check alignment
           int alignmentc = 0;
@@ -167,34 +180,35 @@ int main(int argc, char *argv[]) {
               break;
             }
             // add rotation
+            int cpos[3];
             for (int axis = 0; axis < 3; axis++) {
-              pos[axis] = tempbs[k][axis];
+              cpos[axis] = tempbs[k][axis];
             }
-            rotate(&pos[0], &pos[1], &pos[2], rotidx);
+            rotate(&cpos[0], &cpos[1], &cpos[2], rotidx);
             // add offset
             for (int axis = 0; axis < 3; axis++) {
-              pos[axis] += os[axis];
+              cpos[axis] += os[axis];
             }
             for (int m = 0; m < idx; m++) {
               // see if the transformed beacon has a match
-              printf("%5i %5i | %5i %5i | %5i %5i", bs[m][0], pos[0], bs[m][1],
-                     pos[1], bs[m][2], pos[2]);
-              if (bs[m][0] == pos[0] && //
-                  bs[m][1] == pos[1] && //
-                  bs[m][2] == pos[2]) {
+              /* printf("%5i %5i | %5i %5i | %5i %5i", bs[m][0], pos[0],
+                 bs[m][1], pos[1], bs[m][2], pos[2]); */
+              if (bs[m][0] == cpos[0] && //
+                  bs[m][1] == cpos[1] && //
+                  bs[m][2] == cpos[2]) {
                 // the beacon matches
                 alignmentc++;
-                printf("   a = %i\n", alignmentc);
+                //printf("   a = %i\n", alignmentc);
                 // skip the rest of the evaluations
                 break;
               } else if (m == idx - 1) {
                 // there were no matches. add it to the new beacons list.
                 for (int axis = 0; axis < 3; axis++) {
-                  newbs[newidx][axis] = pos[axis];
+                  newbs[newidx][axis] = cpos[axis];
                 }
                 newidx++;
               }
-              printf("\n");
+              // printf("\n");
             }
           }
           if (alignmentc >= ALIGNMENT_CERTAINTY_THRESHOLD) {
@@ -225,10 +239,10 @@ int main(int argc, char *argv[]) {
           0) {
         perror("fprintf");
       }
-      //exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
 
-    if (printf("%2i scanners aligned.\r", scannerc + 1) < 0) {
+    if (printf("\r%-2i scanners aligned.", scannerc + 1) < 0) {
       perror("fprintf");
     }
   }
