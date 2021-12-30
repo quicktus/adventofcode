@@ -8,7 +8,8 @@
 #define LINE_LEN_MAX 32
 #define DISTINCT_BEACONS_MAX 800
 #define BEACONS_PER_SCANNER_MAX 27
-#define ALIGNMENT_CERTAINTY_THRESHOLD 12
+#define ALIGNMENT_CERTAINTY_THRESHOLD 4
+// 12
 
 static const short rots[24][3][3] = {
     // north
@@ -104,7 +105,7 @@ int main(int argc, char *argv[]) {
   }
 
   // add the rest of the scanners
-  printf("\n");
+  // printf("\n");
   for (int scannerc = 0; !feof(fp); scannerc++) {
     // read the next scanner
     int tempidx = 0;
@@ -150,35 +151,26 @@ int main(int argc, char *argv[]) {
         }
         rotate(&pos[0], &pos[1], &pos[2], rotidx);
 
-        for (int axis = 0; axis < 3; axis++) {
-          if (pos[axis] > 1000) {
-            printf("pos: %i   rotidx: %i   tempbs: %i, %i, %i\n", pos[axis],
-                   rotidx, tempbs[j][0], tempbs[j][1], tempbs[j][2]);
-          }
-        }
-
         // for each beacon in bs
         for (int i = 0; i < idx && !isAligned; i++) {
           // calculate coordinate offset
           int os[3];
           for (int axis = 0; axis < 3; axis++) {
             os[axis] = bs[i][axis] - pos[axis];
-            if (pos[axis] > 1000) {
-              printf("pos: %i   rotidx: %i   tempbs: %i, %i, %i\n", pos[axis],
-                     rotidx, tempbs[j][0], tempbs[j][1], tempbs[j][2]);
-            }
           }
           // check alignment
           int alignmentc = 0;
           int newbs[tempidx][3];
           int newidx = 0;
           for (int k = 0; k < tempidx; k++) {
-            if ((tempidx - k - 1) <
-                (ALIGNMENT_CERTAINTY_THRESHOLD - alignmentc)) {
-              // if the remaining beacons are fewer than the remaining amount
-              // needed to cross the threshold - stop evaluating
-              break;
-            }
+            // this doesn't work as intended so it's disabled for now
+            /*             if ((tempidx - k - 1) <
+                            (ALIGNMENT_CERTAINTY_THRESHOLD - alignmentc)) {
+                          // if the remaining beacons are fewer than the
+               remaining amount
+                          // needed to cross the threshold - stop evaluating
+                          break;
+                        } */
             // add rotation
             int cpos[3];
             for (int axis = 0; axis < 3; axis++) {
@@ -198,8 +190,8 @@ int main(int argc, char *argv[]) {
                   bs[m][2] == cpos[2]) {
                 // the beacon matches
                 alignmentc++;
-                //printf("   a = %i\n", alignmentc);
-                // skip the rest of the evaluations
+                // printf("   a = %i\n", alignmentc);
+                //  skip the rest of the evaluations
                 break;
               } else if (m == idx - 1) {
                 // there were no matches. add it to the new beacons list.
