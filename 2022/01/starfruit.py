@@ -1,7 +1,7 @@
 import os
 
 # read input from file
-input = open(os.path.join(os.getcwd(),"./input.txt"), "r")
+input = open(os.path.join(os.getcwd(),"input.txt"), "r")
 lines = input.readlines()
 
 elf_list = []
