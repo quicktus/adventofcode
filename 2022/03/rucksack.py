@@ -17,10 +17,10 @@ for line in lines:
     # find dupe
     for c in comp_1:
         if comp_2.find(c) != -1:
-            dupe = c
+            # add dupe prio to sum (a = 1; ...; z = 26; A = 27; ...; Z = 52;)
+            dupe_prio_sum += ord(c)-0x60 if (ord(c) > 0x60) else ord(c)-0x26
             break
-    # add dupe prio to sum (a = 1; ...; z = 26; A = 27; ...; Z = 52;)
-    dupe_prio_sum += ord(dupe)-0x60 if (ord(dupe) > 0x60) else ord(dupe)-0x26
+    
 
     group.append(line)
     # find badge in each group
