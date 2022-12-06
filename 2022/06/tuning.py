@@ -1,1 +1,1 @@
-import os;from collections import Counter as c;l=open(os.path.join(os.getcwd(),"input.txt"),"r").read();x=len(l);s="\nfirst {}age sequence found after {} chars";print(s.format("pack",[len(c(l[i-4:i]))for i in range(4,x)].index(4)),s.format("mess",[len(c(l[i-14:i]))for i in range(14,x)].index(14)))
+import os;l=open(os.path.join(os.getcwd(),"input.txt"),"r").read();x,v,s=len(l),14,"\nfirst {}age sequence found after {} chars";print(s.format("pack",[len(set(l[i-4:i]))for i in range(4,x)].index(4)+4),s.format("mess",[len(set(l[i-v:i]))for i in range(v,x)].index(14)+v))
