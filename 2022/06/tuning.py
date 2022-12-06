@@ -1,1 +1,14 @@
-import os;l=open(os.path.join(os.getcwd(),"input.txt"),"r").read();x,v,s=len(l),14,"\nfirst {}age sequence found after {} chars";print(s.format("pack",[len(set(l[i-4:i]))for i in range(4,x)].index(4)+4),s.format("mess",[len(set(l[i-v:i]))for i in range(v,x)].index(14)+v))
+import os
+
+def find_seq(signal, seq_len):
+    for i in range(seq_len, len(signal)):
+        if(len(set(signal[(i-seq_len):i])) == seq_len):
+            return i
+
+input = open(os.path.join(os.getcwd(),"input.txt"), "r")
+line = input.readline()
+pgk_seq_len = 4
+msg_seq_len = 14
+
+print(f"first package sequence found after {find_seq(line, pgk_seq_len)} chars")
+print(f"first message sequence found after {find_seq(line, msg_seq_len)} chars")
