@@ -8,3 +8,7 @@ edition = "2021"
 [[bin]]
 name = "01"
 path = "01/historian-hysteria.rs"
+
+[[bin]]
+name = "02"
+path = "02/red-nosed_reports.rs"
