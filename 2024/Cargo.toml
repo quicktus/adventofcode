@@ -17,3 +17,7 @@ path = "02/red-nosed_reports.rs"
 [[bin]]
 name = "03"
 path = "03/mull_it_over.rs"
+
+[[bin]]
+name = "04"
+path = "04/ceres_search.rs"
