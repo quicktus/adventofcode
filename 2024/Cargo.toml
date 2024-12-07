@@ -29,3 +29,7 @@ path = "05/print_queue.rs"
 [[bin]]
 name = "06"
 path = "06/guard_gallivant.rs"
+
+[[bin]]
+name = "07"
+path = "07/bridge_repair.rs"
