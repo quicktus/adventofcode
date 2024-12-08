@@ -33,3 +33,7 @@ path = "06/guard_gallivant.rs"
 [[bin]]
 name = "07"
 path = "07/bridge_repair.rs"
+
+[[bin]]
+name = "08"
+path = "08/resonant_collinearity.rs"
