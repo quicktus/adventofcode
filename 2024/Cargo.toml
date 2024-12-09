@@ -37,3 +37,7 @@ path = "07/bridge_repair.rs"
 [[bin]]
 name = "08"
 path = "08/resonant_collinearity.rs"
+
+[[bin]]
+name = "09"
+path = "09/disk_fragmenter.rs"
