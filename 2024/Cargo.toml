@@ -41,3 +41,7 @@ path = "08/resonant_collinearity.rs"
 [[bin]]
 name = "09"
 path = "09/disk_fragmenter.rs"
+
+[[bin]]
+name = "10"
+path = "10/hoof_it.rs"
