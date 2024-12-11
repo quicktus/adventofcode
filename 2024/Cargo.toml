@@ -45,3 +45,7 @@ path = "09/disk_fragmenter.rs"
 [[bin]]
 name = "10"
 path = "10/hoof_it.rs"
+
+[[bin]]
+name = "11"
+path = "11/plutonian_pebbles.rs"
