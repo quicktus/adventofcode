@@ -57,3 +57,12 @@ path = "12/garden_groups.rs"
 [[bin]]
 name = "13"
 path = "13/claw_contraption.rs"
+
+
+[[bin]]
+name = "14p1"
+path = "14/restroom_redoubt.rs"
+
+[[bin]]
+name = "14p2"
+path = "14/overlap_finder.rs"
