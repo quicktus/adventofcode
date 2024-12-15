@@ -60,9 +60,17 @@ path = "13/claw_contraption.rs"
 
 
 [[bin]]
-name = "14p1"
+name = "14pt1"
 path = "14/restroom_redoubt.rs"
 
 [[bin]]
-name = "14p2"
+name = "14pt2"
 path = "14/overlap_finder.rs"
+
+[[bin]]
+name = "15pt1"
+path = "15/warehouse_woes.rs"
+
+[[bin]]
+name = "15pt2"
+path = "15/big_warehouse_woes.rs"
