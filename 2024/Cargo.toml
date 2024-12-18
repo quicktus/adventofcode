@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+pathfinding = "4.12.0"
 regex = "1.11.1"
 
 [[bin]]
@@ -74,3 +75,11 @@ path = "15/warehouse_woes.rs"
 [[bin]]
 name = "15pt2"
 path = "15/big_warehouse_woes.rs"
+
+[[bin]]
+name = "16"
+path = "16/reindeer_maze.rs"
+
+[[bin]]
+name = "18"
+path = "18/ram_run.rs"
