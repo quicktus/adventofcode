@@ -87,3 +87,7 @@ path = "17/chronospatial_computer.rs"
 [[bin]]
 name = "18"
 path = "18/ram_run.rs"
+
+[[bin]]
+name = "20"
+path = "20/race_condition.rs"
