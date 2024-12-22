@@ -91,3 +91,11 @@ path = "18/ram_run.rs"
 [[bin]]
 name = "20"
 path = "20/race_condition.rs"
+
+[[bin]]
+name = "21"
+path = "21/keypad_conundrum.rs"
+
+[[bin]]
+name = "22"
+path = "22/monkey_market.rs"
