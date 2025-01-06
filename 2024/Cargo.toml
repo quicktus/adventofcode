@@ -81,8 +81,12 @@ name = "16"
 path = "16/reindeer_maze.rs"
 
 [[bin]]
-name = "17"
-path = "17/chronospatial_computer.rs"
+name = "17pt1"
+path = "17/interpreter.rs"
+
+[[bin]]
+name = "17pt2"
+path = "17/codegen.rs"
 
 [[bin]]
 name = "18"
