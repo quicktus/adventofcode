@@ -93,6 +93,10 @@ name = "18"
 path = "18/ram_run.rs"
 
 [[bin]]
+name = "19"
+path = "19/linen_layout.rs"
+
+[[bin]]
 name = "20"
 path = "20/race_condition.rs"
 
